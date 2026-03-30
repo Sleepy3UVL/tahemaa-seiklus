@@ -1,0 +1,12 @@
+body {
+  margin: 0;
+  font-family: 'Trebuchet MS', Arial, sans-serif;
+  background: linear-gradient(to bottom, #bdefff, #fff7d6);
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
+  border-radius: 20px;
+}

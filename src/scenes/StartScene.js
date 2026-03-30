@@ -17,19 +17,30 @@ export default class StartScene extends Phaser.Scene {
     this.clickSound = this.sound.add('click', { volume: 0.25 });
 
     // Taustamuusika
-    if (!this.sound.get('menuMusic')) {
-      this.menuMusic = this.sound.add('menuMusic', {
-        volume: 0.2,
-        loop: true
-      });
-      this.menuMusic.play();
-    } else {
-      this.menuMusic = this.sound.get('menuMusic');
-      if (!this.menuMusic.isPlaying) {
-        this.menuMusic.play();
-      }
+  if (!this.sound.get('menuMusic')) {
+    this.menuMusic = this.sound.add('menuMusic', {
+      volume: 0.2,
+      loop: true
+    });
+  } else {
+    this.menuMusic = this.sound.get('menuMusic');
+  }
+
+    // VERY IMPORTANT: unlock audio on first tap (iPhone fix)
+    this.input.once("pointerdown", () => {
+
+    // kui audio on blokeeritud, vabasta see
+    if (this.sound.context.state === "suspended") {
+      this.sound.context.resume();
     }
 
+    // käivita muusika
+    if (!this.menuMusic.isPlaying) {
+      this.menuMusic.play();
+    }
+
+      });
+    }
     // Dekoratsioon
     this.add.text(110, 70, '☁️', { fontSize: '42px' }).setAlpha(0.6);
     this.add.text(770, 70, '☁️', { fontSize: '46px' }).setAlpha(0.6);

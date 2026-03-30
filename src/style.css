@@ -1,12 +1,18 @@
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  height: 100%;
   font-family: 'Trebuchet MS', Arial, sans-serif;
   background: linear-gradient(to bottom, #bdefff, #fff7d6);
   overflow: hidden;
 }
 
+#game-container {
+  width: 100%;
+  height: 100%;
+}
+
 canvas {
   display: block;
-  margin: 0 auto;
   border-radius: 20px;
 }

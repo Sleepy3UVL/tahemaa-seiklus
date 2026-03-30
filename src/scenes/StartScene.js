@@ -39,8 +39,7 @@ export default class StartScene extends Phaser.Scene {
       this.menuMusic.play();
     }
 
-      });
-    }
+    });
     // Dekoratsioon
     this.add.text(110, 70, '☁️', { fontSize: '42px' }).setAlpha(0.6);
     this.add.text(770, 70, '☁️', { fontSize: '46px' }).setAlpha(0.6);

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { WORDS } from '../data/words';
 
 export default class BuildWordScene extends Phaser.Scene {
   constructor() {
@@ -6,37 +7,30 @@ export default class BuildWordScene extends Phaser.Scene {
   }
 
   preload() {
-  this.load.image('maja', '/images/maja.png');
-  this.load.image('kala', '/images/kala.png');
-  this.load.image('auto', '/images/auto.png');
-  this.load.image('koer', '/images/koer.png');
-  this.load.image('ema', '/images/ema.png');
-  this.load.image('isa', '/images/isa.png');
-  this.load.image('pall', '/images/pall.png');
+    WORDS.forEach(item => {
+      this.load.image(item.image, `/images/${item.image}.png`);
+    });
 
-  this.load.audio('correct', '/sounds/correct.mp3');
-  this.load.audio('wrong', '/sounds/wrong.mp3');
-  this.load.audio('click', '/sounds/click.mp3');
+    this.load.audio('correct', '/sounds/correct.mp3');
+    this.load.audio('wrong', '/sounds/wrong.mp3');
+    this.load.audio('click', '/sounds/click.mp3');
   }
 
   create() {
     this.correctSound = this.sound.add('correct', { volume: 0.4 });
     this.wrongSound = this.sound.add('wrong', { volume: 0.35 });
     this.clickSound = this.sound.add('click', { volume: 0.25 });
-    
+
     this.score = 0;
     this.round = 1;
     this.maxRounds = 5;
 
-  this.wordPairs = [
-  { parts: ['MA', 'JA'], answer: 'MAJA', image: 'maja' },
-  { parts: ['KA', 'LA'], answer: 'KALA', image: 'kala' },
-  { parts: ['KO', 'ER'], answer: 'KOER', image: 'koer' },
-  { parts: ['EM', 'A'], answer: 'EMA', image: 'ema' },
-  { parts: ['I', 'SA'], answer: 'ISA', image: 'isa' },
-  { parts: ['AU', 'TO'], answer: 'AUTO', image: 'auto' },
-  { parts: ['PA', 'LL'], answer: 'PALL', image: 'pall' }
-  ];
+    // Võta andmed words.js failist
+    this.wordPairs = WORDS.map(item => ({
+      parts: item.syllables,
+      answer: item.word,
+      image: item.image
+    }));
 
     this.shuffledTasks = Phaser.Utils.Array.Shuffle([...this.wordPairs]);
     this.maxRounds = Math.min(this.maxRounds, this.shuffledTasks.length);
@@ -65,8 +59,8 @@ export default class BuildWordScene extends Phaser.Scene {
     });
 
     backButton.on('pointerdown', () => {
-    this.clickSound.play();
-    this.scene.start('StartScene');
+      this.clickSound.play();
+      this.scene.start('StartScene');
     });
 
     this.scoreText = this.add.text(30, 95, 'Punktid: 0', {
@@ -75,7 +69,7 @@ export default class BuildWordScene extends Phaser.Scene {
       fontStyle: 'bold'
     });
 
-    this.roundText = this.add.text(700, 50, 'Voor: 1/5', {
+    this.roundText = this.add.text(700, 50, `Voor: 1/${this.maxRounds}`, {
       fontSize: '28px',
       color: '#3a2e39',
       fontStyle: 'bold'
@@ -88,6 +82,16 @@ export default class BuildWordScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.generateRound();
+  }
+
+  getDistractorParts(correctParts) {
+    const allParts = this.wordPairs.flatMap(item => item.parts);
+    const uniqueParts = [...new Set(allParts)];
+    const filtered = uniqueParts.filter(part => !correctParts.includes(part));
+
+    Phaser.Utils.Array.Shuffle(filtered);
+
+    return filtered.slice(0, 2);
   }
 
   generateRound() {
@@ -115,7 +119,7 @@ export default class BuildWordScene extends Phaser.Scene {
     this.feedbackText.setText('');
     this.selectedParts = [];
 
-    const current = this.shuffledTasks[this.round];
+    const current = this.shuffledTasks[this.round - 1];
     this.currentParts = current.parts;
     this.correctAnswer = current.answer;
     this.currentImage = current.image;
@@ -131,16 +135,12 @@ export default class BuildWordScene extends Phaser.Scene {
       color: '#5a4b57'
     }).setOrigin(0.5);
 
-    // Pildi vihje (õigete proportsioonidega)
+    // Pildi vihje
     this.hintImage = this.add.image(450, 220, this.currentImage);
 
     const maxSize = 140;
-
     this.hintImage.setScale(
-    maxSize / Math.max(
-    this.hintImage.width,
-    this.hintImage.height
-    )
+      maxSize / Math.max(this.hintImage.width, this.hintImage.height)
     );
 
     // Sihtkastid sõna jaoks
@@ -149,24 +149,32 @@ export default class BuildWordScene extends Phaser.Scene {
     const startX = 450 - totalWidth / 2;
 
     for (let i = 0; i < this.currentParts.length; i++) {
-    const x = startX + i * boxSpacing;
+      const x = startX + i * boxSpacing;
 
-    const box = this.add.rectangle(x, 300, 100, 80, 0xffffff)
-    .setStrokeStyle(4, 0x8d6e63);
+      const box = this.add.rectangle(x, 300, 100, 80, 0xffffff)
+        .setStrokeStyle(4, 0x8d6e63);
 
-    const placeholder = this.add.text(x, 300, '?', {
-    fontSize: '36px',
-    color: '#999'
-    }).setOrigin(0.5);
+      const placeholder = this.add.text(x, 300, '?', {
+        fontSize: '36px',
+        color: '#999'
+      }).setOrigin(0.5);
 
-    this.targetBoxes.push(box, placeholder);
+      this.targetBoxes.push(box, placeholder);
     }
 
-    // Sega valikud
-    const shuffledParts = Phaser.Utils.Array.Shuffle([...this.currentParts]);
+    // Dünaamilised eksitajad
+    const distractors = this.getDistractorParts(this.currentParts);
+    const shuffledParts = Phaser.Utils.Array.Shuffle([
+      ...this.currentParts,
+      ...distractors
+    ]);
+
+    const spacing = 170;
+    const totalButtonsWidth = (shuffledParts.length - 1) * spacing;
+    const buttonStartX = 450 - totalButtonsWidth / 2;
 
     shuffledParts.forEach((part, index) => {
-      const x = 280 + index * 170;
+      const x = buttonStartX + index * spacing;
       const y = 420;
 
       const button = this.add.rectangle(x, y, 130, 85, 0xbde0fe)
@@ -190,8 +198,8 @@ export default class BuildWordScene extends Phaser.Scene {
       });
 
       button.on('pointerdown', () => {
-      this.clickSound.play();
-      this.selectPart(part, button, text);
+        this.clickSound.play();
+        this.selectPart(part, button, text);
       });
 
       this.optionObjects.push(button, text);
@@ -205,23 +213,24 @@ export default class BuildWordScene extends Phaser.Scene {
   }
 
   selectPart(part, button, text) {
-  if (button.selected) return;
+    if (button.selected) return;
 
-  button.selected = true;
-  button.setFillStyle(0xcaffbf);
+    button.selected = true;
+    button.setFillStyle(0xcaffbf);
 
-  this.selectedParts.push(part);
+    this.selectedParts.push(part);
 
-  const index = this.selectedParts.length - 1;
+    const index = this.selectedParts.length - 1;
 
-  // Leia vastav ? tekst ja asenda silbiga
-  const placeholder = this.targetBoxes[index * 2 + 1];
-  placeholder.setText(part);
+    // Leia vastav ? tekst ja asenda silbiga
+    const placeholder = this.targetBoxes[index * 2 + 1];
+    placeholder.setText(part);
+    placeholder.setColor('#2d6a4f');
 
-  if (this.selectedParts.length === this.currentParts.length) {
-    this.checkWord();
+    if (this.selectedParts.length === this.currentParts.length) {
+      this.checkWord();
+    }
   }
-}
 
   checkWord() {
     const builtWord = this.selectedParts.join('');
@@ -248,9 +257,9 @@ export default class BuildWordScene extends Phaser.Scene {
     } else {
       this.wrongSound.play();
       this.feedbackText.setColor('#d62828');
-      this.feedbackText.setText('Proovi uuesti 🙂');
+      this.feedbackText.setText(`Proovi uuesti 🙂 Õige sõna oli ${this.correctAnswer}`);
 
-      this.time.delayedCall(1000, () => {
+      this.time.delayedCall(1200, () => {
         this.generateRound();
       });
     }
@@ -260,32 +269,59 @@ export default class BuildWordScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#d8f3dc');
     this.children.removeAll();
 
-    this.add.text(450, 150, 'Tubli töö! 📚', {
+    this.add.text(450, 120, 'Tubli töö! 📚', {
       fontSize: '48px',
       color: '#2d6a4f',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    this.add.text(450, 235, 'Sõnamäng on läbi!', {
+    this.add.text(450, 190, 'Tase 2 on läbitud!', {
       fontSize: '36px',
       color: '#3a2e39',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    this.add.text(450, 305, `Said ${this.score} punkti ${this.maxRounds}-st`, {
+    this.add.text(450, 255, `Said ${this.score} punkti ${this.maxRounds}-st`, {
       fontSize: '30px',
       color: '#333'
     }).setOrigin(0.5);
 
-    this.add.text(450, 365, '🐻 🐰 🦊 🐸', {
+    this.add.text(450, 315, '🐻 🐰 🦊 🐸', {
       fontSize: '52px'
     }).setOrigin(0.5);
 
-    const menuButton = this.add.rectangle(450, 440, 300, 75, 0xbde0fe)
+    // Järgmine tase
+    const nextButton = this.add.rectangle(450, 390, 320, 75, 0xcaffbf)
       .setStrokeStyle(5, 0x8d6e63)
       .setInteractive({ useHandCursor: true });
 
-    const menuText = this.add.text(450, 440, 'Tagasi menüüsse', {
+    const nextText = this.add.text(450, 390, 'Järgmine tase', {
+      fontSize: '28px',
+      color: '#3a2e39',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    nextButton.on('pointerover', () => {
+      nextButton.setScale(1.05);
+      nextText.setScale(1.05);
+    });
+
+    nextButton.on('pointerout', () => {
+      nextButton.setScale(1);
+      nextText.setScale(1);
+    });
+
+    nextButton.on('pointerdown', () => {
+      this.clickSound.play();
+      this.scene.start('ChooseWordScene');
+    });
+
+    // Menüü
+    const menuButton = this.add.rectangle(450, 480, 300, 75, 0xbde0fe)
+      .setStrokeStyle(5, 0x8d6e63)
+      .setInteractive({ useHandCursor: true });
+
+    const menuText = this.add.text(450, 480, 'Tagasi menüüsse', {
       fontSize: '28px',
       color: '#3a2e39',
       fontStyle: 'bold'
@@ -302,15 +338,16 @@ export default class BuildWordScene extends Phaser.Scene {
     });
 
     menuButton.on('pointerdown', () => {
-    this.clickSound.play();
-    this.scene.start('StartScene');
+      this.clickSound.play();
+      this.scene.start('StartScene');
     });
 
-    const restartButton = this.add.rectangle(450, 525, 300, 75, 0xffd166)
+    // Uuesti
+    const restartButton = this.add.rectangle(450, 570, 300, 75, 0xffd166)
       .setStrokeStyle(5, 0x8d6e63)
       .setInteractive({ useHandCursor: true });
 
-    const restartText = this.add.text(450, 525, 'Mängi uuesti', {
+    const restartText = this.add.text(450, 570, 'Mängi uuesti', {
       fontSize: '28px',
       color: '#3a2e39',
       fontStyle: 'bold'
@@ -327,8 +364,8 @@ export default class BuildWordScene extends Phaser.Scene {
     });
 
     restartButton.on('pointerdown', () => {
-    this.clickSound.play();
-    this.scene.restart();
+      this.clickSound.play();
+      this.scene.restart();
     });
   }
 }

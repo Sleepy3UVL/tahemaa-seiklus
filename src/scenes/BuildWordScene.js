@@ -26,10 +26,12 @@ export default class BuildWordScene extends Phaser.Scene {
     this.maxRounds = 5;
 
     // Võta andmed words.js failist
-    this.wordPairs = WORDS.map(item => ({
-      parts: item.syllables,
-      answer: item.word,
-      image: item.image
+    this.wordPairs = WORDS
+  .filter(item => item.usableInBuild)
+  .map(item => ({
+    parts: item.syllables,
+    answer: item.word,
+    image: item.image
     }));
 
     this.shuffledTasks = Phaser.Utils.Array.Shuffle([...this.wordPairs]);
@@ -269,33 +271,33 @@ export default class BuildWordScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#d8f3dc');
     this.children.removeAll();
 
-    this.add.text(450, 120, 'Tubli töö! 📚', {
+    this.add.text(450, 100, 'Tubli töö! 📚', {
       fontSize: '48px',
       color: '#2d6a4f',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    this.add.text(450, 190, 'Tase 2 on läbitud!', {
+    this.add.text(450, 165, 'Tase 2 on läbitud!', {
       fontSize: '36px',
       color: '#3a2e39',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    this.add.text(450, 255, `Said ${this.score} punkti ${this.maxRounds}-st`, {
+    this.add.text(450, 225, `Said ${this.score} punkti ${this.maxRounds}-st`, {
       fontSize: '30px',
       color: '#333'
     }).setOrigin(0.5);
 
-    this.add.text(450, 315, '🐻 🐰 🦊 🐸', {
+    this.add.text(450, 280, '🐻 🐰 🦊 🐸', {
       fontSize: '52px'
     }).setOrigin(0.5);
 
     // Järgmine tase
-    const nextButton = this.add.rectangle(450, 390, 320, 75, 0xcaffbf)
+    const nextButton = this.add.rectangle(450, 360, 320, 75, 0xcaffbf)
       .setStrokeStyle(5, 0x8d6e63)
       .setInteractive({ useHandCursor: true });
 
-    const nextText = this.add.text(450, 390, 'Järgmine tase', {
+    const nextText = this.add.text(450, 360, 'Järgmine tase', {
       fontSize: '28px',
       color: '#3a2e39',
       fontStyle: 'bold'
@@ -317,11 +319,11 @@ export default class BuildWordScene extends Phaser.Scene {
     });
 
     // Menüü
-    const menuButton = this.add.rectangle(450, 480, 300, 75, 0xbde0fe)
+    const menuButton = this.add.rectangle(450, 450, 300, 75, 0xbde0fe)
       .setStrokeStyle(5, 0x8d6e63)
       .setInteractive({ useHandCursor: true });
 
-    const menuText = this.add.text(450, 480, 'Tagasi menüüsse', {
+    const menuText = this.add.text(450, 450, 'Tagasi menüüsse', {
       fontSize: '28px',
       color: '#3a2e39',
       fontStyle: 'bold'
@@ -343,11 +345,11 @@ export default class BuildWordScene extends Phaser.Scene {
     });
 
     // Uuesti
-    const restartButton = this.add.rectangle(450, 570, 300, 75, 0xffd166)
+    const restartButton = this.add.rectangle(450, 540, 300, 75, 0xffd166)
       .setStrokeStyle(5, 0x8d6e63)
       .setInteractive({ useHandCursor: true });
 
-    const restartText = this.add.text(450, 570, 'Mängi uuesti', {
+    const restartText = this.add.text(450, 540, 'Mängi uuesti', {
       fontSize: '28px',
       color: '#3a2e39',
       fontStyle: 'bold'

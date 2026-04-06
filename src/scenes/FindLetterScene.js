@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { WORDS } from '../data/words';
+import { applyMute, showMuteStatus } from '../utils/audioManager';
 
 export default class FindLetterScene extends Phaser.Scene {
   constructor() {
@@ -17,6 +18,8 @@ export default class FindLetterScene extends Phaser.Scene {
   }
 
   create() {
+    applyMute(this);
+
     this.correctSound = this.sound.add('correct', { volume: 0.4 });
     this.wrongSound = this.sound.add('wrong', { volume: 0.35 });
     this.clickSound = this.sound.add('click', { volume: 0.25 });
@@ -224,33 +227,32 @@ export default class FindLetterScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#caffbf');
     this.children.removeAll();
 
-    this.add.text(450, 120, 'Tubli töö! 🌟', {
+    this.add.text(450, 105, 'Tubli töö! 🌟', {
       fontSize: '50px',
       color: '#2d6a4f',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    this.add.text(450, 190, 'Tase 1 on läbitud!', {
+    this.add.text(450, 170, 'Tase 1 on läbitud!', {
       fontSize: '38px',
       color: '#3a2e39',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    this.add.text(450, 250, `Said ${this.score} punkti ${this.maxRounds}-st`, {
+    this.add.text(450, 235, `Said ${this.score} punkti ${this.maxRounds}-st`, {
       fontSize: '30px',
       color: '#333'
     }).setOrigin(0.5);
 
-    this.add.text(450, 310, '🐻 🐰 🦊 🐸', {
+    this.add.text(450, 295, '🐻 🐰 🦊 🐸', {
       fontSize: '52px'
     }).setOrigin(0.5);
 
-    // Järgmine tase
-    const nextButton = this.add.rectangle(450, 390, 320, 75, 0xcaffbf)
+    const nextButton = this.add.rectangle(450, 380, 330, 75, 0xcaffbf)
       .setStrokeStyle(5, 0x8d6e63)
       .setInteractive({ useHandCursor: true });
 
-    const nextText = this.add.text(450, 390, 'Järgmine tase', {
+    const nextText = this.add.text(450, 380, 'Järgmine tase', {
       fontSize: '28px',
       color: '#3a2e39',
       fontStyle: 'bold'
@@ -271,12 +273,11 @@ export default class FindLetterScene extends Phaser.Scene {
       this.scene.start('BuildWordScene');
     });
 
-    // Menüü
-    const menuButton = this.add.rectangle(450, 480, 300, 75, 0xbde0fe)
+    const menuButton = this.add.rectangle(450, 465, 300, 75, 0xbde0fe)
       .setStrokeStyle(5, 0x8d6e63)
       .setInteractive({ useHandCursor: true });
 
-    const menuText = this.add.text(450, 480, 'Tagasi menüüsse', {
+    const menuText = this.add.text(450, 465, 'Tagasi menüüsse', {
       fontSize: '28px',
       color: '#3a2e39',
       fontStyle: 'bold'
@@ -297,12 +298,11 @@ export default class FindLetterScene extends Phaser.Scene {
       this.scene.start('StartScene');
     });
 
-    // Uuesti
-    const restartButton = this.add.rectangle(450, 570, 300, 75, 0xffd166)
+    const restartButton = this.add.rectangle(450, 550, 300, 75, 0xffd166)
       .setStrokeStyle(5, 0x8d6e63)
       .setInteractive({ useHandCursor: true });
 
-    const restartText = this.add.text(450, 570, 'Mängi uuesti', {
+    const restartText = this.add.text(450, 550, 'Mängi uuesti', {
       fontSize: '28px',
       color: '#3a2e39',
       fontStyle: 'bold'

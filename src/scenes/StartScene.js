@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { createMuteButton, applyMute } from '../utils/audioManager';
 
 export default class StartScene extends Phaser.Scene {
   constructor() {
@@ -13,33 +14,33 @@ export default class StartScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor('#dff7ff');
 
+    // Rakenda mute seis kohe scene alguses
+    applyMute(this);
+
     // Heli
     this.clickSound = this.sound.add('click', { volume: 0.25 });
 
     // Taustamuusika
-  if (!this.sound.get('menuMusic')) {
-    this.menuMusic = this.sound.add('menuMusic', {
-      volume: 0.2,
-      loop: true
-    });
-  } else {
-    this.menuMusic = this.sound.get('menuMusic');
-  }
+    if (!this.sound.get('menuMusic')) {
+      this.menuMusic = this.sound.add('menuMusic', {
+        volume: 0.2,
+        loop: true
+      });
+    } else {
+      this.menuMusic = this.sound.get('menuMusic');
+    }
 
     // VERY IMPORTANT: unlock audio on first tap (iPhone fix)
-    this.input.once("pointerdown", () => {
+    this.input.once('pointerdown', () => {
+      if (this.sound.context.state === 'suspended') {
+        this.sound.context.resume();
+      }
 
-    // kui audio on blokeeritud, vabasta see
-    if (this.sound.context.state === "suspended") {
-      this.sound.context.resume();
-    }
-
-    // käivita muusika
-    if (!this.menuMusic.isPlaying) {
-      this.menuMusic.play();
-    }
-
+      if (!this.menuMusic.isPlaying) {
+        this.menuMusic.play();
+      }
     });
+
     // Dekoratsioon
     this.add.text(110, 70, '☁️', { fontSize: '42px' }).setAlpha(0.6);
     this.add.text(770, 70, '☁️', { fontSize: '46px' }).setAlpha(0.6);
@@ -64,6 +65,9 @@ export default class StartScene extends Phaser.Scene {
     this.add.text(450, 210, '🐻 🐰 🦊 🐸', {
       fontSize: '54px'
     }).setOrigin(0.5);
+
+    // Mute nupp
+    createMuteButton(this);
 
     // Nupp 1 - Leia täht
     const button1 = this.add.rectangle(450, 305, 360, 75, 0xffd166)
@@ -160,5 +164,6 @@ export default class StartScene extends Phaser.Scene {
 
       this.scene.start('ChooseWordScene');
     });
+    createMuteButton(this);
   }
 }
